@@ -1,0 +1,34 @@
+{
+    "name": "ccbox/admin-workorder",
+    "description": "description...",
+    "type": "library",
+    "keywords": ["laravel-admin", "extension"],
+    "homepage": "https://github.com/ccbox/admin-workorder",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Dada",
+            "email": "ccbox.net@163.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=7.0.0",
+        "encore/laravel-admin": "~1.6"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~6.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ccbox\\AdminWorkorder\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ccbox\\AdminWorkorder\\AdminWorkorderServiceProvider"
+            ]
+        }
+    }
+}
