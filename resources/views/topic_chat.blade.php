@@ -17,7 +17,17 @@
           &nbsp;&nbsp;&nbsp;
           <span class="direct-chat-timestamp">{{ $topic->created_at }}</span>
         </div>
+        <div class="title">[ {{$topic->title}} ]</div>
         {!! $topic->content !!}
+        @if($topic->images)
+          <div>
+            @foreach($topic->images_url as $image)
+              <a href="{{$image}}" target="_blank" rel="noopener noreferrer">
+                <img src="{{$image}}" alt="" class="img img-thumbnail">
+              </a>
+            @endforeach
+          </div>
+        @endif
       </div>
       <!-- /.direct-chat-text -->
     </div>
@@ -41,6 +51,18 @@
             <span class="direct-chat-timestamp">{{ $topic->created_at }}</span>
           </div>
           {!! $reply->content !!}
+          @if($reply->images)
+            <div class="row">
+              @foreach($reply->images_url as $image)
+                <div class="col-md-4">
+                  <a href="{{$image}}" target="_blank" rel="noopener noreferrer">
+                    <img src="{{$image}}" alt="" class="img img-thumbnail">
+                  </a>
+                </div>
+              @endforeach
+            </div>
+            <!-- <div><?php var_dump($reply->images_url); ?></div> -->
+          @endif
         </div>
         <!-- /.direct-chat-text -->
       </div>
@@ -78,6 +100,17 @@
     border: none;
     margin: 5px 50px 0 50px;
     /* color: #444; */
+}
+.direct-chat-text .title{
+  font-size:16px;
+}
+.direct-chat-text .img-thumbnail{
+  /* max-width:200px; */
+  /* max-height:200px; */
+  background: none;
+  border-radius:0px;
+  padding:1px;
+  margin-bottom: 5px;
 }
 .direct-chat-danger .right>.direct-chat-text {
     background: #38ac77;

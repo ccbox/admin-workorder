@@ -27,7 +27,7 @@ class CreateAdminWorkorderTicketsTable extends Migration
             $table->string('type',32);
             $table->string('title',128);
             $table->text('content');
-            $table->json('images')->nullable();
+            $table->text('images')->nullable();
             
             $table->tinyInteger('level');
             

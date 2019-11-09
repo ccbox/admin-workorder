@@ -169,7 +169,31 @@ class TicketsController extends AdminController
             $form->hidden('level','等级')->rules('required')->value($this->parent_data->level);
         }
         // $form->textarea('content','内容')->rules('required')->rows(2);
-        $form->text('content','内容')->rules('required');
+        // $form->text('content','内容')->rules('required');
+        $form->editor('content','内容')->rules('required')->options([
+            'menus'=>[
+                'head',         // 标题
+                'bold',         // 粗体
+                'fontSize',     // 字号
+                // 'fontName',     // 字体
+                'italic',       // 斜体
+                'underline',    // 下划线
+                // 'strikeThrough',// 删除线
+                'foreColor',    // 文字颜色
+                'backColor',    // 背景颜色
+                'link',         // 插入链接
+                'list',         // 列表
+                // 'justify',      // 对齐方式
+                'quote',        // 引用
+                'emoticon',     // 表情
+                // 'image',        // 插入图片
+                'table',        // 表格
+                // 'video',        // 插入视频
+                'code',         // 插入代码
+                'undo',         // 撤销
+                'redo'          // 重复
+            ]]);
+        $form->multipleImage('images', '图片')->removable()->move('workorder')->uniqueName();
         
         // $form->switch('closed','关闭工单');
         $form->hidden('closed')->default(0)->value(0);
@@ -189,8 +213,7 @@ class TicketsController extends AdminController
             $footer->disableEditingCheck();
         });
         $form->tools(function (Form\Tools $tools){
-            $tools->disableDelete();
-            $tools->disableView();
+            $tools->disableList(false);
         });
 
         return $form;
