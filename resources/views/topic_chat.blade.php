@@ -17,7 +17,7 @@
           &nbsp;&nbsp;&nbsp;
           <span class="direct-chat-timestamp">{{ $topic->created_at }} &nbsp;&nbsp;</span>
           <a class="direct-chat-timestamp pull-right" href="{{admin_url('admin-workorder/tickets').'?topic_id='.$topic->id}}">回复</a>
-          <span class="direct-chat-timestamp pull-right">话题ID:{{ $topic->id }}</span>
+          <span class="direct-chat-timestamp pull-right">话题ID:{{ $topic->id }} &nbsp;&nbsp;</span>
         </div>
         <div class="title">[ {{$topic->title}} ]</div>
         {!! $topic->content !!}

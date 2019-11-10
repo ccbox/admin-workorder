@@ -125,19 +125,23 @@ class TicketsController extends AdminController
     {
         $grid = new Grid(new AdminWorkorderTicket());
 
-        $grid->model()->with('discusses')->where('topic_id', 0)->orWhere('topic_id', null)->orderBy('id','desc');
+        $grid->model()->with('discusses')->where(function($query){
+            $query->where('topic_id', 0)->orWhere('topic_id', null);
+        })->orderBy('id','desc');
 
-        $grid->id('ID');
+        $grid->id('ID')->sortable();
+        
+        $grid->column('type', '类型')->using(AdminWorkorderTicket::$typeMap)->filter(AdminWorkorderTicket::$typeMap)->sortable();
         $grid->column('discusses_count','回复数')->display(function($value){
             return $this->discusses->count();
         });
-        $grid->user_id('用户ID');
-        $grid->user()->name('用户');
+        // $grid->user_id('用户ID');
+        $grid->user()->name('发起人');
         $grid->column('title', '标题');
         // $grid->column('content', '内容')->limit(50);
 
-        $grid->column('created_at', '创建时间');
-        $grid->column('updated_at', '更新时间');
+        $grid->column('created_at', '创建时间')->sortable();
+        $grid->column('updated_at', '更新时间')->sortable();
         
         // 不在每一行后面展示的按钮
         $grid->actions(function ($actions) {
@@ -148,6 +152,22 @@ class TicketsController extends AdminController
             $view_url = admin_url('admin-workorder/tickets', ['topic_id'=>$actions->row->id]); // 跳到详情页，不过新添、列表等按钮要处理去掉上一层
             // $view_url = admin_url('admin-workorder/tickets') . '?topic_id='.$actions->row->id;  // 跳到首页统一处理
             $actions->append('<a href="'.$view_url.'"><i class="fa fa-eye"></i></a>');
+        });
+
+        $grid->filter(function ($filter) {
+            $filter->between('created_at','创建时间')->datetime();
+            $filter->in('type', '类型')->checkbox(AdminWorkorderTicket::$typeMap);
+            $userModel = config('admin.database.users_model');
+            // $filter->equal('user_id', '发起人')->select($userModel::all()->pluck('name', 'id'));
+            $filter->where(function ($query) {
+                $id = $this->input;
+                if(is_numeric($id)){
+                    $query->where('id', $id);
+                }else{
+                    $query->where('title', 'like', "%$id%");
+                    $query->orWhere('content', 'like', "%$id%");
+                }
+            }, '模糊搜索')->placeholder('请输入关键字进行搜索');
         });
         
         return $grid;
