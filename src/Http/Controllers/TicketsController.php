@@ -31,11 +31,19 @@ class TicketsController extends AdminController
     public function index(Content $content)
     {
         $this->topic_id =  request()->input('topic_id', 0);
+        if ($this->topic_id>0) {
+            $topic_id = AdminWorkorderTicket::getTopicId($this->topic_id);
+            if($topic_id != $this->topic_id){
+                // $this->topic_id = $topic_id;
+                return redirect( admin_url('admin-workorder/tickets') . '?topic_id='.$topic_id );
+            }
+        }
         $this->parent_id = request()->input('parent_id', $this->topic_id);
 
         if($this->topic_id>0){
+            $this->topic_id = AdminWorkorderTicket::getTopicId($this->topic_id);
             if(AdminWorkorderTicket::REPLY_TYPE == AdminWorkorderTicket::REPLY_CHAT){
-                $this->parent_id = $this->topic_id;
+                // $this->parent_id = $this->topic_id;
                 $topic_data = AdminWorkorderTicket::query()
                                 ->with(['discusses'=> function ($query) {
                                     $query->orderBy('id', 'asc');
@@ -51,6 +59,13 @@ class TicketsController extends AdminController
 
             if($topic_data){
                 $this->topic_data = $topic_data;
+
+                if($this->parent_id != $this->topic_id){
+                    $this->parent_data = AdminWorkorderTicket::query()->find($this->parent_id);
+                }else{
+                    $this->parent_data = $topic_data;
+                }
+
                 $this->topic_view = $this->topicView($topic_data);
             }
         }
@@ -77,11 +92,8 @@ class TicketsController extends AdminController
             $replies_html = $this->topicReplyView($topic);
             
             $form_html = '';
-            if($this->parent_id==$topic->id){
-                $this->parent_data = $topic;
-                $this->form_title = '回复：'.$topic->title;
-                $form_html = $this->form()->render();
-            }
+            $this->form_title = '回复：'.$this->parent_data->user->name.'（话题ID：'.$this->parent_data->id.'）';
+            $form_html = $this->form()->render();
 
             $view = view('admin-workorder::topic', [
                 'topic'             => $topic,
@@ -95,9 +107,7 @@ class TicketsController extends AdminController
     protected function topicReplyView($topic, $level=0)
     {
         $html = '';
-
-        if(AdminWorkorderTicket::REPLY_TYPE == AdminWorkorderTicket::REPLY_CHAT){
-            $this->parent_data = $topic;
+        // if(AdminWorkorderTicket::REPLY_TYPE == AdminWorkorderTicket::REPLY_CHAT){
             $view_tpl = 'admin-workorder::topic_chat';
             $html = view($view_tpl, [
                 'topic' => $topic,
@@ -106,9 +116,9 @@ class TicketsController extends AdminController
                 'level' => $level,
             ])->render();
             return $html;
-        }else{
-            $view_tpl = 'admin-workorder::topic_forum';
-        }
+        // }else{
+        //     $view_tpl = 'admin-workorder::topic_forum';
+        // }
     }
 
     protected function grid()
@@ -148,13 +158,16 @@ class TicketsController extends AdminController
         $form = new Form(new AdminWorkorderTicket());
 
         $title = $this->form_title;
-        // $title .= ' # ';
-        // $title .= $this->topic_id;
-        // $title .= ' # ';
-        // $title .= $this->parent_id;
-        // $title .= ' # ';
         $form->setTitle($title);
         $form->setAction(admin_base_path('admin-workorder/tickets'));
+        
+        if($this->topic_id > 0){
+            // Builder::PREVIOUS_URL_KEY = '_previous_';
+            request()->offsetSet('_previous_', admin_url('admin-workorder/tickets', ['topic_id'=>$this->topic_id, 'from'=>'form']));
+            request()->offsetSet('after-save', 5);
+        }else{
+            request()->offsetSet('after-save', 3);
+        }
         
         if($this->topic_id < 1){
             $form->text('title', '标题')->rules('required');
@@ -166,7 +179,23 @@ class TicketsController extends AdminController
         }else{
             $form->hidden('title', '标题')->value('Re:'.$this->topic_id.'-'.$this->parent_id)->rules('required');
             $form->hidden('type','类型')->rules('required')->value(AdminWorkorderTicket::TYPE_REPLY);
-            $form->hidden('level','等级')->rules('required')->value($this->parent_data->level);
+            $form->hidden('level','等级')->rules('required')->value($this->topic_data->level);
+            if($this->topic_id != $this->parent_id){
+                $html = '';
+                $html .= '<div class="callout bg-gray" style="margin:5px 0;padding:5px;">';
+                $html .= '<div style="padding-bottom:5px;">';
+                $html .= '<img class="direct-chat-img" style="float:left;margin:0 5px;" src="'.$this->parent_data->user->avatar.'" alt="message user image">';
+                $html .= $this->parent_data->user->name;
+                $html .= '&nbsp;&nbsp;&nbsp;';
+                $html .= $this->parent_data->created_at;
+                $html .= '&nbsp;&nbsp;&nbsp;';
+                $html .= '<br>';
+                $html .= '(话题ID：'.$this->parent_data->id.')';
+                $html .= '</div>';
+                $html .= '<div>'.$this->parent_data->content.'</div>';
+                $html .= '</div>';
+                $form->html($html);
+            }
         }
         // $form->textarea('content','内容')->rules('required')->rows(2);
         // $form->text('content','内容')->rules('required');
@@ -216,38 +245,16 @@ class TicketsController extends AdminController
             $tools->disableList(false);
         });
 
+        $form->setWidth(10, 2);
         return $form;
     }
-
-
-
 
     public function show($id, Content $content)
     {
         // 跳回首页操作
-        request()->offsetSet('topic_id', $id);
-        return $this->index($content);
-
-        
-        // $topic = AdminWorkorderTicket::findOrFail($id);
-        // $this->parent_id = request()->input('parent_id', $id);
-
-        // $form = $this->form();
-
-        // return $content
-        //     ->title($this->title)
-        //     ->description($this->title)
-        //     ->row(function (Row $row) use ($form){
-        //         $row->column(6, $this->grid());
-        //         $row->column(6, function (Column $column) use ($form){
-        //             $column->row($form);
-        //         });
-        //     });
-            
-        // // return $content
-        // //     ->title('Title')
-        // //     ->description('Description')
-        // //     ->body(view('admin-workorder::index'));
+        // request()->offsetSet('topic_id', $id);
+        // return $this->index($content);
+        return redirect( admin_url('admin-workorder/tickets') . '?topic_id='.$id );
     }
 
 }

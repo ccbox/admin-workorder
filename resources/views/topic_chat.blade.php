@@ -15,7 +15,9 @@
         <div class="direct-chat-info clearfix">
           <span class="direct-chat-name pull-left" title="{{ $topic->user_id }}">{{ $topic->user->name }}</span>
           &nbsp;&nbsp;&nbsp;
-          <span class="direct-chat-timestamp">{{ $topic->created_at }}</span>
+          <span class="direct-chat-timestamp">{{ $topic->created_at }} &nbsp;&nbsp;</span>
+          <a class="direct-chat-timestamp pull-right" href="{{admin_url('admin-workorder/tickets').'?topic_id='.$topic->id}}">回复</a>
+          <span class="direct-chat-timestamp pull-right">话题ID:{{ $topic->id }}</span>
         </div>
         <div class="title">[ {{$topic->title}} ]</div>
         {!! $topic->content !!}
@@ -46,10 +48,31 @@
         <!-- /.direct-chat-img -->
         <div class="direct-chat-text">
           <div class="direct-chat-info clearfix">
-            <span class="direct-chat-name" title="{{ $topic->user_id }}">{{ $reply->user->name }}</span>
+            <span class="direct-chat-name" title="{{ $reply->user_id }}">{{ $reply->user->name }}</span>
             &nbsp;&nbsp;&nbsp;
-            <span class="direct-chat-timestamp">{{ $topic->created_at }}</span>
+            <span class="direct-chat-timestamp">{{ $reply->created_at }}</span>
+            <a class="direct-chat-timestamp pull-right" href="{{admin_url('admin-workorder/tickets').'?topic_id='.$reply->topic_id .'&parent_id='.$reply->id}}">回复</a>
+            <span class="direct-chat-timestamp pull-right">话题ID:{{ $reply->id }} &nbsp;&nbsp;</span>
+            <!-- <span class="direct-chat-timestamp pull-right">PID:{{ $reply->parent_id }}&nbsp;&nbsp;</span> -->
           </div>
+          
+          @if($reply->parent_id != $reply->topic_id)
+            <div class="callout bg-gray" style="margin:0px;padding:5px;">
+              <div style="padding-bottom:5px;">
+                <img class="direct-chat-img" style="float:left;margin:0 5px;" src="{{ $reply->reparent->user->avatar }}" alt="message user image">
+                {{ $reply->reparent->user->name }}
+                &nbsp;&nbsp;&nbsp;
+                {{ $reply->reparent->created_at }}
+                &nbsp;&nbsp;&nbsp;
+                <br>
+                (话题ID：{{ $reply->reparent->id }})
+              </div>
+              <div>
+                {!! $reply->reparent->content !!}
+              </div>
+            </div>
+          @endif
+
           {!! $reply->content !!}
           @if($reply->images)
             <div class="row">

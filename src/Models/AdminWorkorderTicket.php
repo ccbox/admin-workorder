@@ -66,6 +66,36 @@ class AdminWorkorderTicket extends Model
     {
         return $this->hasMany(AdminWorkorderTicket::class, 'parent_id')->orderBy('id');
     }
+
+    public function reparent()
+    {
+        return $this->belongsTo(AdminWorkorderTicket::class, 'parent_id');
+    }
+
+    // set: topic_id
+    public function setTopicIdAttribute($value)
+    {
+        $this->attributes['topic_id'] = self::getTopicId($value);
+    }
+
+    public static function getTopicId($id)
+    {
+        $topic_id = $id;
+        $topic = AdminWorkorderTicket::query()->find($id);
+        if($topic){
+            if ($topic->topic_id) {
+                return self::getTopicId($topic->topic_id);
+            }
+        }else{
+            $topic_id = 0;
+        }
+        return $topic_id;
+    }
+    // get: topic_id
+    // public function getTopicIdAttribute($value)
+    // {
+
+    // }
     
     // get: images_url
     public function getImagesUrlAttribute()
