@@ -110,10 +110,11 @@ class TicketsController extends AdminController
         // if(AdminWorkorderTicket::REPLY_TYPE == AdminWorkorderTicket::REPLY_CHAT){
             $view_tpl = 'admin-workorder::topic_chat';
             $html = view($view_tpl, [
-                'topic' => $topic,
-                'replies' => $topic->discusses,
-                'current_user_id' => Admin::user()->id,
-                'level' => $level,
+                'topic'             => $topic,
+                'replies'           => $topic->discusses,
+                'actions'           => AdminWorkorderTicket::$actionMap,
+                'current_user_id'   => Admin::user()->id,
+                'level'             => $level,
             ])->render();
             return $html;
         // }else{
@@ -128,10 +129,18 @@ class TicketsController extends AdminController
         $grid->model()->with('discusses')->where(function($query){
             $query->where('topic_id', 0)->orWhere('topic_id', null);
         })->orderBy('id','desc');
+        
+        if(request('closed')==null){
+            $grid->model()->where('closed', 0);
+        }
+        if(request('closed')=='all'){
+            request()->offsetSet('closed', null);
+        }
 
         $grid->id('ID')->sortable();
         
         $grid->column('type', '类型')->using(AdminWorkorderTicket::$typeMap)->filter(AdminWorkorderTicket::$typeMap)->sortable();
+        $grid->column('level', '等级')->using(AdminWorkorderTicket::$levelMap)->filter(AdminWorkorderTicket::$levelMap)->sortable();
         $grid->column('discusses_count','回复数')->display(function($value){
             return $this->discusses->count();
         });
@@ -139,6 +148,14 @@ class TicketsController extends AdminController
         $grid->user()->name('发起人');
         $grid->column('title', '标题');
         // $grid->column('content', '内容')->limit(50);
+        $grid->closed('状态')->display(function($value) {
+            if($this->closed){
+                return '<spane class="badge bg-gray">已关闭</span>';
+            }elseif($this->closed_at){
+                return '<spane class="badge bg-red">已重启</span>';
+            }
+            return '<spane class="badge bg-orange">未结束</span>';
+        });
 
         $grid->column('created_at', '创建时间')->sortable();
         $grid->column('updated_at', '更新时间')->sortable();
@@ -156,7 +173,9 @@ class TicketsController extends AdminController
 
         $grid->filter(function ($filter) {
             $filter->between('created_at','创建时间')->datetime();
-            $filter->in('type', '类型')->checkbox(AdminWorkorderTicket::$typeMap);
+            $filter->equal('closed', '状态')->radio(['all'=>'全部','1'=>'关闭', '0'=>'激活'])->default('0');
+            // $filter->in('type', '类型')->checkbox(AdminWorkorderTicket::$typeMap);
+            // $filter->in('level', '等级')->checkbox(AdminWorkorderTicket::$levelMap);
             $userModel = config('admin.database.users_model');
             // $filter->equal('user_id', '发起人')->select($userModel::all()->pluck('name', 'id'));
             $filter->where(function ($query) {
@@ -198,7 +217,17 @@ class TicketsController extends AdminController
             $form->radio('level','等级')->options(AdminWorkorderTicket::$levelMap)->default(3);
         }else{
             $form->hidden('title', '标题')->value('Re:'.$this->topic_id.'-'.$this->parent_id)->rules('required');
-            $form->hidden('type','类型')->rules('required')->value(AdminWorkorderTicket::TYPE_REPLY);
+            // $form->hidden('type','类型')->rules('required')->value('reply');
+            $actionMap = AdminWorkorderTicket::$actionMap;
+            if($this->topic_data->closed){
+                unset($actionMap['close']);
+            }else{
+                unset($actionMap['reopen']);
+            }
+            $form->radio('type','操作')
+                ->options($actionMap)
+                ->rules('required')
+                ->default('reply');
             $form->hidden('level','等级')->rules('required')->value($this->topic_data->level);
             if($this->topic_id != $this->parent_id){
                 $html = '';
@@ -264,8 +293,28 @@ class TicketsController extends AdminController
         $form->tools(function (Form\Tools $tools){
             $tools->disableList(false);
         });
-
         $form->setWidth(10, 2);
+
+        $form->saving(function (Form $form) {
+            // dd($form->input('closed'),$form->closed, $form->topic_id, $form->model()->topic);
+            if ($form->topic_id>0){
+                $topic = AdminWorkorderTicket::find($form->topic_id);
+                if($form->type=='close'){
+                    $topic->closed = true;
+                    $topic->closed_at = Carbon::now();
+                    $topic->closed_by = \Admin::user()->id;
+                    $topic->save();
+                }elseif($form->type=='reopen'){
+                    $topic->closed = false;
+                    // $topic->closed_at = Carbon::now();
+                    // $topic->closed_by = \Admin::user()->id;
+                    $topic->save();
+                }
+            }else{
+
+            }
+        });
+
         return $form;
     }
 

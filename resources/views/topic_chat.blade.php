@@ -51,9 +51,16 @@
             <span class="direct-chat-name" title="{{ $reply->user_id }}">{{ $reply->user->name }}</span>
             &nbsp;&nbsp;&nbsp;
             <span class="direct-chat-timestamp">{{ $reply->created_at }}</span>
+            &nbsp;&nbsp;&nbsp;
+            @if($reply->type!='reply')
+              <span class="direct-chat-timestamp badge bg-red">{{ $actions[$reply->type] }}工单</span>
+            @else
+              <span class="direct-chat-timestamp">{{ $actions[$reply->type] }}工单</span>
+            @endif
+
             <a class="direct-chat-timestamp pull-right" href="{{admin_url('admin-workorder/tickets').'?topic_id='.$reply->topic_id .'&parent_id='.$reply->id}}">回复</a>
             <span class="direct-chat-timestamp pull-right">话题ID:{{ $reply->id }} &nbsp;&nbsp;</span>
-            <!-- <span class="direct-chat-timestamp pull-right">PID:{{ $reply->parent_id }}&nbsp;&nbsp;</span> -->
+            <!-- <span class="direct-chat-timestamp pull-right">话题PID:{{ $reply->parent_id }}&nbsp;&nbsp;</span> -->
           </div>
           
           @if($reply->parent_id != $reply->topic_id)

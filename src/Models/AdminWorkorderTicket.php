@@ -18,15 +18,19 @@ class AdminWorkorderTicket extends Model
     const TYPE_BUG          = 'bug';
     const TYPE_IMPROVE      = 'improve';
     const TYPE_OTHER        = 'other';
-
     const TYPE_REPLY        = 'reply';
-    
     public static $typeMap = [
         self::TYPE_CONSULT  => '咨询',
         self::TYPE_ISSUE    => '问题',
         self::TYPE_BUG      => 'BUG',
         self::TYPE_IMPROVE  => '优化',
         self::TYPE_OTHER    => '其他',
+    ];
+
+    public static $actionMap = [
+        'reply'     => '回复',
+        'close'     => '关闭',
+        'reopen'    => '重启',
     ];
 
     public static $levelMap = [
@@ -38,10 +42,8 @@ class AdminWorkorderTicket extends Model
     ];
 
     const REPLY_TYPE    = 'chat';
-
     const REPLY_FORUM   = 'forum';
     const REPLY_CHAT    = 'chat';
-
     public static $replyMap = [
         self::REPLY_FORUM   => '论坛模式',
         self::REPLY_CHAT    => '对话模式',
@@ -51,10 +53,19 @@ class AdminWorkorderTicket extends Model
         'images' => 'json',
         'closed' => 'boolean',
     ];
+    
+    protected $dates = [
+        'closed_at',
+    ];
 
     public function user(){
         $userModel = config('admin.database.users_model');
         return $this->belongsTo($userModel);
+    }
+
+    public function topic()
+    {
+        return $this->belongsTo(AdminWorkorderTicket::class, 'topic_id');
     }
 
     public function discusses()
