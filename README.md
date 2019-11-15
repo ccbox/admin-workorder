@@ -31,7 +31,8 @@ composer require ccbox/admin-workorder
                 // 请先确认启用的编辑器是否支持options配置再填写，为空时则使用编辑器的默认配置
                 'config' => [],
             ],
-            // 工单附件存储盘，留空为使用系统默认盘
+            // 工单附件存储盘
+            // 留空或不填则使用admin.upload.disk中的配置
             'files_disk' => '',
         ],
 

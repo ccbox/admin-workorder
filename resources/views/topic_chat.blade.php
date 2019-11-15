@@ -22,11 +22,13 @@
         <div class="title">[ {{$topic->title}} ]</div>
         {!! $topic->content !!}
         @if($topic->images)
-          <div>
+          <div class="row">
             @foreach($topic->images_url as $image)
-              <a href="{{$image}}" target="_blank" rel="noopener noreferrer">
-                <img src="{{$image}}" alt="" class="img img-thumbnail">
-              </a>
+              <div class="col-md-4">
+                <a href="{{$image}}" target="_blank" rel="noopener noreferrer">
+                  <img src="{{$image}}" alt="" class="img img-thumbnail">
+                </a>
+              </div>
             @endforeach
           </div>
         @endif
@@ -91,7 +93,6 @@
                 </div>
               @endforeach
             </div>
-            <!-- <div><?php var_dump($reply->images_url); ?></div> -->
           @endif
         </div>
         <!-- /.direct-chat-text -->

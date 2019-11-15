@@ -4,6 +4,7 @@ namespace Ccbox\AdminWorkorder\Models;
 
 use Ccbox\AdminWorkorder\AdminWorkorder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class AdminWorkorderTicket extends Model
 {
@@ -116,10 +117,11 @@ class AdminWorkorderTicket extends Model
             foreach($this->images as $image){
                 if(empty($image)){
                     $return[] = $image;
-                }elseif (\Str::startsWith($image, ['http://', 'https://'])) {
+                }elseif (Str::startsWith($image, ['http://', 'https://'])) {
                     $return[] =  $image;
                 }else{
-                    $return[] = \Storage::disk(AdminWorkorder::config('files_disk'))->url($image);
+                    $disk = AdminWorkorder::config('files_disk') ?? config('admin.upload.disk');
+                    $return[] = \Storage::disk($disk)->url($image);
                 }
             }
         }
