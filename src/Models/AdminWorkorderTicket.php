@@ -2,6 +2,7 @@
 
 namespace Ccbox\AdminWorkorder\Models;
 
+use Ccbox\AdminWorkorder\AdminWorkorder;
 use Illuminate\Database\Eloquent\Model;
 
 class AdminWorkorderTicket extends Model
@@ -105,7 +106,6 @@ class AdminWorkorderTicket extends Model
     // get: topic_id
     // public function getTopicIdAttribute($value)
     // {
-
     // }
     
     // get: images_url
@@ -113,8 +113,14 @@ class AdminWorkorderTicket extends Model
     {
         $return = [];
         if(!empty($this->images)){
-            foreach($this->images as $val){
-                $return[] = image_full_src($val);
+            foreach($this->images as $image){
+                if(empty($image)){
+                    $return[] = $image;
+                }elseif (\Str::startsWith($image, ['http://', 'https://'])) {
+                    $return[] =  $image;
+                }else{
+                    $return[] = \Storage::disk(AdminWorkorder::config('files_disk'))->url($image);
+                }
             }
         }
         return $return;
