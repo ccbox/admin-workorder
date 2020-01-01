@@ -21,6 +21,10 @@ class AdminWorkorderServiceProvider extends ServiceProvider
         if (! AdminWorkorder::boot()) {
             return ;
         }
+        
+        if ($this->app->runningInConsole()) {
+            $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        }
 
         if ($views = $extension->views()) {
             $this->loadViewsFrom($views, 'admin-workorder');
